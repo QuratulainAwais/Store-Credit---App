@@ -147,11 +147,7 @@ export const action = async ({request}) => {
       result.data?.order,
       savedAmount,
     );
-    const earnedCredit = getCurrentOrderEarnedCredit(
-      appstleLoyalty,
-      customer?.storeCreditAccounts?.nodes,
-      result.data?.order,
-    );
+    const earnedCredit = getCurrentOrderEarnedCredit(result.data?.order);
 
     return cors(
       Response.json({
@@ -309,12 +305,7 @@ function addPendingOrderCredit(credit, loyalty, currentOrder, savedAmount) {
   };
 }
 
-function getCurrentOrderEarnedCredit(loyalty, storeCreditAccounts, currentOrder) {
-  const isEnrolled = Boolean(loyalty) || Boolean(storeCreditAccounts?.length);
-  if (!isEnrolled) {
-    return null;
-  }
-
+function getCurrentOrderEarnedCredit(currentOrder) {
   const orderSubtotal = currentOrder?.subtotalPriceSet?.shopMoney;
   const subtotalAmount = Number(orderSubtotal?.amount);
 
@@ -327,7 +318,7 @@ function getCurrentOrderEarnedCredit(loyalty, storeCreditAccounts, currentOrder)
   }
 
   return {
-    amount: roundMoney(subtotalAmount * 0.01),
+    amount: roundMoney(subtotalAmount / 100),
     currencyCode: orderSubtotal.currencyCode,
   };
 }
