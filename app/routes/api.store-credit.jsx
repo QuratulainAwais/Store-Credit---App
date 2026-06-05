@@ -394,8 +394,8 @@ function getStoreCreditUsedFromTotals(order) {
   const priceAmount = Number(totalPrice.amount);
   const receivedAmount = Number(totalReceived.amount);
 
-  // Only use this fallback when a card payment was actually captured
-  if (!Number.isFinite(receivedAmount) || receivedAmount <= 0) return null;
+  if (!Number.isFinite(priceAmount) || priceAmount <= 0) return null;
+  if (!Number.isFinite(receivedAmount)) return null;
 
   const savedAmount = priceAmount - receivedAmount;
 
