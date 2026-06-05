@@ -142,6 +142,10 @@ export const action = async ({request}) => {
     );
     const savedAmount =
       getStoreCreditUsed(result.data?.order?.transactions) ||
+      getStoreCreditUsedFromCardTransactions(
+        result.data?.order?.transactions,
+        result.data?.order?.totalPriceSet?.shopMoney,
+      ) ||
       getStoreCreditUsedFromTotals(result.data?.order);
     const credits = getLatestCredits(
       appstleLoyalty,
@@ -261,12 +265,9 @@ function getLatestCredits(
 
   return nativeCredits.map((credit) =>
     credit === shopCurrencyCredit &&
-    Number(appstleCredit.amount) > Number(shopCurrencyCredit.amount)
-      ? addPendingOrderCredit(appstleCredit, loyalty, currentOrder, savedAmount)
-      : credit === shopCurrencyCredit &&
-          Number(appstleCredit.amount) === Number(shopCurrencyCredit.amount)
-        ? addPendingOrderCredit(credit, loyalty, currentOrder, savedAmount)
-        : credit,
+    Number(appstleCredit.amount) === Number(shopCurrencyCredit.amount)
+      ? addPendingOrderCredit(credit, loyalty, currentOrder, savedAmount)
+      : credit,
   );
 }
 
@@ -343,14 +344,14 @@ function roundMoney(amount) {
   return Math.round(amount * 100) / 100;
 }
 
+function isStoreCreditGateway(t) {
+  const gatewayText = [t.gateway, t.formattedGateway].filter(Boolean).join(" ");
+  const normalized = gatewayText.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return normalized.includes("storecredit");
+}
+
 function getStoreCreditUsed(transactions) {
   if (!transactions?.length) return null;
-
-  const isStoreCreditGateway = (t) => {
-    const gatewayText = [t.gateway, t.formattedGateway].filter(Boolean).join(" ");
-    const normalized = gatewayText.toLowerCase().replace(/[^a-z0-9]/g, "");
-    return normalized.includes("storecredit");
-  };
 
   const isActive = (t) => ["SUCCESS", "PENDING"].includes(t.status);
 
@@ -378,6 +379,36 @@ function getStoreCreditUsed(transactions) {
   }
 
   return {amount: roundMoney(savedAmount), currencyCode};
+}
+
+function getStoreCreditUsedFromCardTransactions(transactions, totalPrice) {
+  if (!transactions?.length || !totalPrice?.currencyCode) return null;
+
+  const isActive = (t) => ["SUCCESS", "PENDING"].includes(t.status);
+
+  const cardTransactions = transactions.filter(
+    (t) =>
+      isActive(t) &&
+      ["SALE", "CAPTURE"].includes(t.kind) &&
+      !isStoreCreditGateway(t) &&
+      t.amountSet?.shopMoney?.currencyCode === totalPrice.currencyCode,
+  );
+
+  if (!cardTransactions.length) return null;
+
+  const cardTotal = cardTransactions.reduce(
+    (sum, t) => sum + Number(t.amountSet?.shopMoney?.amount || 0),
+    0,
+  );
+
+  if (!Number.isFinite(cardTotal) || cardTotal <= 0) return null;
+
+  const priceAmount = Number(totalPrice.amount);
+  const savedAmount = priceAmount - cardTotal;
+
+  if (!Number.isFinite(savedAmount) || savedAmount <= 0) return null;
+
+  return {amount: roundMoney(savedAmount), currencyCode: totalPrice.currencyCode};
 }
 
 function getStoreCreditUsedFromTotals(order) {
