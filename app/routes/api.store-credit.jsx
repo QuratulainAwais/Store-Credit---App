@@ -124,7 +124,9 @@ export const action = async ({request}) => {
     }
 
     const customer = result.data?.order?.customer;
+    console.log("[store-credit] customer metafields:", JSON.stringify(customer?.metafields?.nodes));
     const appstleLoyalty = findAppstleLoyalty(customer?.metafields?.nodes);
+    console.log("[store-credit] appstleLoyalty:", JSON.stringify(appstleLoyalty));
     const savedAmount =
       getStoreCreditUsed(result.data?.order?.transactions) ||
       getStoreCreditUsedFromCardTransactions(
