@@ -19,7 +19,6 @@ function Extension() {
   const [earnedCredit, setEarnedCredit] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [isCustomerInSystem, setIsCustomerInSystem] = useState(false);
-  const [vipTier, setVipTier] = useState(null);
 
   useEffect(() => {
     async function loadStoreCredit() {
@@ -56,7 +55,6 @@ function Extension() {
         setEarnedCredit(data.earnedCredit || null);
         setFirstName(data.firstName || "");
         setIsCustomerInSystem(Boolean(data.isCustomerInSystem));
-        setVipTier(data.vipTier || null);
         setStatus("loaded");
       } catch (error) {
         if (error instanceof TypeError) {
@@ -147,7 +145,6 @@ function Extension() {
         <s-text type="strong">
           Congratulations{firstName ? ` ${firstName}!` : "!"}
         </s-text>
-        {vipTier ? <s-text>You are a {vipTier} member.</s-text> : null}
         {savedAmount ? (
           <s-text>
             You saved{" "}
