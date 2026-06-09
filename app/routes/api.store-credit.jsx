@@ -308,17 +308,18 @@ function addPendingOrderCredit(credit, loyalty, currentOrder, savedAmount) {
 function getCurrentOrderEarnedCredit(currentOrder, loyalty) {
   if (!loyalty?.customerStatus) return null;
 
-  const storeCreditBalance = Number(loyalty?.storeCreditBalance);
-  if (!Number.isFinite(storeCreditBalance) || storeCreditBalance <= 0) return null;
+  const subtotal = currentOrder?.subtotalPriceSet?.shopMoney;
+  if (!subtotal?.currencyCode) return null;
 
-  const currencyCode =
-    currentOrder?.subtotalPriceSet?.shopMoney?.currencyCode ||
-    currentOrder?.totalPriceSet?.shopMoney?.currencyCode;
-  if (!currencyCode) return null;
+  const subtotalAmount = Number(subtotal.amount);
+  if (!Number.isFinite(subtotalAmount) || subtotalAmount <= 0) return null;
+
+  const earnedAmount = roundMoney(subtotalAmount / 100);
+  if (earnedAmount <= 0) return null;
 
   return {
-    amount: roundMoney(storeCreditBalance),
-    currencyCode,
+    amount: earnedAmount,
+    currencyCode: subtotal.currencyCode,
   };
 }
 
