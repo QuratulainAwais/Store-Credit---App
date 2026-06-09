@@ -140,12 +140,14 @@ export const action = async ({request}) => {
         result.data?.order?.totalPriceSet?.shopMoney,
       ) ||
       getStoreCreditUsedFromTotals(result.data?.order);
+    const earnedCredit = getCurrentOrderEarnedCredit(result.data?.order, appstleLoyalty);
     const credits = getLatestCredits(
       appstleLoyalty,
       customer?.storeCreditAccounts?.nodes,
       result.data?.shop?.currencyCode,
+      savedAmount,
+      earnedCredit,
     );
-    const earnedCredit = getCurrentOrderEarnedCredit(result.data?.order, appstleLoyalty);
 
     return cors(
       Response.json({
@@ -229,7 +231,13 @@ function getCustomerFirstName(customer) {
   return "";
 }
 
-function getLatestCredits(loyalty, storeCreditAccounts, shopCurrencyCode) {
+function getLatestCredits(
+  loyalty,
+  storeCreditAccounts,
+  shopCurrencyCode,
+  savedAmount,
+  earnedCredit,
+) {
   const nativeCredits =
     storeCreditAccounts
       ?.map((account) => account.balance)
@@ -246,7 +254,24 @@ function getLatestCredits(loyalty, storeCreditAccounts, shopCurrencyCode) {
     (credit) => credit.currencyCode !== appstleCredit.currencyCode,
   );
 
-  return [...otherNativeCredits, appstleCredit];
+  return [
+    ...otherNativeCredits,
+    applyCurrentOrderToCredit(appstleCredit, savedAmount, earnedCredit),
+  ];
+}
+
+function applyCurrentOrderToCredit(credit, savedAmount, earnedCredit) {
+  let amount = Number(credit.amount);
+
+  if (savedAmount?.currencyCode === credit.currencyCode) {
+    amount -= Number(savedAmount.amount);
+  }
+
+  if (earnedCredit?.currencyCode === credit.currencyCode) {
+    amount += Number(earnedCredit.amount);
+  }
+
+  return {...credit, amount: roundMoney(Math.max(amount, 0))};
 }
 
 function getAppstleCredits(loyalty, currencyCode) {
