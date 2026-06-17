@@ -1,3 +1,4 @@
+<img width="798" height="446" alt="Screenshot 2026-06-17 at 1 21 10 PM" src="https://github.com/user-attachments/assets/a0ed7692-491b-49cf-ae4f-853057235296" />
 # Shopify App Template - React Router
 
 This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using [React Router](https://reactrouter.com/). It was forked from the [Shopify Remix app template](https://github.com/Shopify/shopify-app-template-remix) and converted to React Router.
@@ -234,3 +235,5 @@ Shopify:
 Internationalization:
 
 - [Internationalizing your app](https://shopify.dev/docs/apps/best-practices/internationalization/getting-started)
+<img width="798" height="446" alt="Screenshot 2026-06-17 at 1 21 10 PM" src="https://github.com/user-attachments/assets/8879c2ae-9a14-4867-a242-9486b2daebf3" />
+
